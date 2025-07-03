@@ -214,14 +214,36 @@ body {
   }
   #question {
     font-size: 18px;
-    margin-bottom: 17px;
-	padding: 0 14px;
+    margin-bottom: 18px;
+    max-width: 96vw;
+    width: 95vw;
+    margin-left: auto;
+    margin-right: auto;
+    background: none;
+    padding: 0 10px;
+    box-sizing: border-box;
+    text-align: left;
   }
-  
+  #options {
+    width: 97vw;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0;
+  }
   #options label {
+    display: flex;
+    align-items: center;
+    max-width: 95vw;
+    min-width: 0;
+    margin: 0 auto 10px auto;
+    padding: 11px 12px 11px 14px;
+    border-radius: 10px;
+    background: #f8fafc;
+    box-shadow: 0 1px 2px 0 rgba(80,80,80,0.04);
     font-size: 15px;
-    margin-bottom: 10px;
-    padding: 12px 7px 12px 0;
+    box-sizing: border-box;
+    text-align: left;
+    width: 94vw;
   }
   button#submitBtn, button#nextBtn {
     width: 90vw;
