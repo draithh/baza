@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz z Baz Danych</title>
+  <style>
+body {
+  font-family: sans-serif;
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  margin: 0;
+}
+#quiz-container {
+  margin-top: 40px;
+  width: 90%;
+  max-width: 800px;
+  background: white;
+  padding: 30px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 12px;
+}
+#question { 
+  font-size: 22px; 
+  margin-bottom: 20px; 
+  font-weight: 600;
+}
+#options { 
+  margin-bottom: 20px; 
+  text-align: left; 
+}
+
+#options label {
+  font-size: 18px;
+  padding: 10px 12px 10px 0;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.17s, box-shadow 0.15s;
+  background: #f8fafc;
+  box-shadow: 0 1px 2px 0 rgba(80,80,80,0.04);
+}
+#options label:hover {
+  background: #e7f6e9;
+  box-shadow: 0 2px 8px 0 rgba(76,175,80,0.08);
+}
+#options input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  margin-right: 16px;
+  border: 2.5px solid #b0b5bb;
+  border-radius: 7px;
+  background: #fff;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  vertical-align: middle;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 2px 4px 0 rgba(80,80,80,0.05);
+}
+#options input[type="checkbox"]:hover {
+  border-color: #4caf50;
+  box-shadow: 0 2px 7px 0 rgba(80,180,100,0.12);
+}
+#options input[type="checkbox"]:checked {
+  border-color: #4caf50;
+  background: #e8fbe6;
+}
+#options input[type="checkbox"]:checked:after {
+  content: "";
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 4px auto;
+  border-radius: 4px;
+  background: #4caf50;
+  box-shadow: 0 0 3px #4caf50a1;
+}
+.correct { 
+  background-color: #c8f7c5 !important; 
+  border: 2px solid #47b961 !important;
+}
+.wrong { 
+  background-color: #f7c5c5 !important; 
+  border: 2px solid #e55454 !important;
+}
+#result { 
+  padding: 13px; 
+  margin-top: 20px; 
+  font-size: 20px; 
+  color: white; 
+  border-radius: 7px;
+  font-weight: 600;
+  min-height: 36px;
+}
+.navbar {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+#submitBtn, #nextBtn {
+  width: 220px;
+  margin-bottom: 0px;
+}
+
+#submitBtn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 13px 34px;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px 0 rgba(80,80,80,0.08);
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  letter-spacing: 0.5px;
+}
+#submitBtn:hover {
+  background-color: #45a049;
+  transform: scale(1.045);
+}
+#nextBtn {
+  background-color: #196fcf;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 13px 34px;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0;
+  box-shadow: 0 1px 3px 0 rgba(80,80,80,0.09);
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  letter-spacing: 0.5px;
+}
+#nextBtn:hover {
+  background-color: #0e3770;
+  color: #fff;
+  transform: scale(1.045);
+}
+
+#mode-switch {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+.mode-btn {
+  background: #fff;
+  color: #333;
+  border: 2px solid #ccc;
+  border-radius: 25px;
+  font-size: 16px;
+  padding: 8px 28px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+  text-transform: uppercase;
+}
+.mode-btn.active,
+.mode-btn:hover {
+  background-color: #4CAF50;
+  color: white;
+  box-shadow: 0 0 6px rgba(76,175,80,0.13);
+}
+
+
+  </style>
+</head>
+<body>
+  <h1>Quiz z Baz Danych i Optymalizacji</h1>
+  <div id="mode-switch">
+  <button id="seqBtn" class="mode-btn active" onclick="setMode('sequential')">Po kolei</button>
+  <button id="randBtn" class="mode-btn" onclick="setMode('random')">Losowo</button>
+</div>
+
+
+  <div id="quiz-container">
+    <div id="question"></div>
+    <div id="options"></div>
+<div class="navbar">
+  <button id="submitBtn" onclick="checkAnswer()">Sprawdź</button>
+ 
+  <button id="nextBtn" onclick="nextQuestion()">Następne pytanie</button>
+</div>
+
+
+    <div id="result"></div>
+  </div>
+  <script>
+  let mode = "sequential"; // domyślnie po kolei
+let questionIndex = 0;   // do trybu sekwencyjnego
+
+        const questions = [
+      {
+        text: "1. Zaznacz super klucze dla relacji R(A, B, C, D, E):",
+        answers: [
+          "{A, B}+ = {A,B,C,D,E}",
+          "{C, D}+ = {C,D, B}",
+          "{A,B,C}+ = {A,B,C,D,E}",
+          "{A,B,C}+ ={A,B,C}"
+        ],
+        correct: [0,2]
+      },
+      {
+        text: "2. Które z poniższych stwierdzeń dotyczących XML są PRAWDZIWE?",
+        answers: [
+          "Elementy mogą być zagnieżdżone w innych elementach.",
+          "Dane mają strukturę hierarchiczną.",
+          "Elementy mogą się powtarzać w jednym XML'u.",
+          "Atrybuty mogą zawierać w sobie elementy.",
+          "Atrybuty mogą się powtarzać w ramach elementu."
+        ],
+        correct: [0,1,2]
+      },
+      {
+        text: "3. Algorytmami złączania (join) wykorzystującymi iloczyn kartezjański są:",
+        answers: [
+          "Index Nested Loop Join (INLJ)",
+          "Block Nested Loop Join (BNLJ)",
+          "Hash Join (H)",
+          "Nested Loop Join (NLJ)",
+          "Sort-Merge Join (SMJ)"
+        ],
+        correct: [1,3]
+      },
+      {
+        text: "4. W jakim języku jest niniejszy fragment kodu: for  $mt  in  doc(\"dblp.xml\")/dblp/mastersthesis where  $mt/year/text()  =  \"1999\"",
+        answers: [
+          "XQuery",
+          "XML",
+          "XSD",
+          "XPath",
+          "DTD"
+        ],
+        correct: [0]
+      },
+      {
+        text: "5. Regułami Armstronga są:",
+        answers: [
+          "Podział i łączenie (Split/Combine)",
+          "Przechodniość (Transitivity)",
+          "Zależności (Dependency)",
+          "Wnioskowania (Inference)",
+          "Redukcja (Reduction)"
+        ],
+        correct: [0,1,4]
+      },
+      {
+        text: "6. Komenda DELETE FROM tabela1; spowoduje:",
+        answers: [
+          "usunięcie tabela1.",
+          "usunięcie rekordów z tabela1.",
+          "usunięcie atrybutów z tabela1.",
+          "usunięcie relacji z tabela1."
+        ],
+        correct: [1]
+      },
+      {
+        text: "7. W algorytmach Nested Loop Join (NLJ) i Block Nested Loop Join (BNLJ) w zewnętrznej pętli powinna być relacja, która:",
+        answers: [
+          "jest większa",
+          "jest mniejsza",
+          "nie ma to znaczenia"
+        ],
+        correct: [1]
+      },
+      {
+        text: "8. Jak nazywa się operacja, której wynik zawiera wszystkie pary rekordów z dwóch relacji, niezależnie od tego, czy ich wartości atrybutów są zgodne?",
+        answers: [
+          "złączenie (join)",
+          "iloczyn kartezjański (Cartesian product)",
+          "przecięcie zbiorów (intersect)",
+          "różnica zbiorów (except)"
+        ],
+        correct: [1]
+      },
+      {
+        text: "9. ______ oznacza, że dane użyte podczas realizacji transakcji nie mogą być wykorzystane przez drugą transakcję do czasu zakończenia pierwszej.",
+        answers: [
+          "Izolacja",
+          "Atomowość",
+          "Znakowanie czasem",
+          "Serializacja"
+        ],
+        correct: [0]
+      },
+      {
+        text: "10. Wybierz klucz spośród super kluczy dla relacji R(A, B, C, D, E, F)",
+        answers: [
+          "{A, B, C, D}+",
+          "{A, B, C}+",
+          "{A, B}+",
+          "{A, B, C, D, E}+"
+        ],
+        correct: [2]
+      },
+      {
+        text: "11. Które z poniższych stwierdzeń dotyczących B+ drzew są PRAWDZIWE:",
+        answers: [
+          "Można przyśpieszyć wyszukiwanie utrzymując część drzewa w pamięci RAM.",
+          "Liczba potomków węźle (fanout) powinna być taka aby zająć jeden blok danych.",
+          "Aby działać efektywnie drzewo powinno być całkowicie zapełnione.",
+          "Koszt wyszukania danych w drzewie nie zależy od liczby potomków w węźle (fanout)."
+        ],
+        correct: [0,1]
+      },
+      {
+        text: "12. Które z poniższych stwierdzeń dotyczących dziennika (loga) są PRAWDZIWE:",
+        answers: [
+          "Wykorzystywany jest do odtworzenia spójnego stanu bazy danych po awarii.",
+          "Może służyć jako kopia zapasowa bazy danych (backup).",
+          "Zapisywane są informacje o wszystkich wykonanych zapytaniach na bazie danych.",
+          "zapisywane są tylko informacje o zmianach w bazie danych.",
+          "DBMS wymusza zapisywanie dziennika na dysk."
+        ],
+        correct: [0,3,4]
+      },
+      {
+        text: "13. Zaznacz przywileje możliwe do nadania komendą GRANT",
+        answers: [
+          "DROP",
+          "VIEW",
+          "UPDATE",
+          "INDEX",
+          "CREATE",
+          "INSERT",
+          "SELECT"
+        ],
+        correct: [0,2,3,4,5,6]
+      },
+      {
+        text: "14. W ramach optymalizacji zapytań",
+        answers: [
+          "Wykonuje się wiele zapytań i zwracany jest wynik najszybszego z nich.",
+          "Można go zastąpić właściwym doborem indeksów",
+          "Wykonuje się tylko jeden plan, który prawdopodobnie najszybciej się wykona."
+        ],
+        correct: [2]
+      },
+      {
+        text: "15. Które z poniższych stwierdzeń dotyczących blokad są PRAWDZIWE?",
+        answers: [
+          "Można założyć blokadę UPDATE dla zasobu, który ma założoną blokadę współdzieloną.",
+          "Nie można założyć blokady wyłącznej dla zasobu, który ma założoną blokadę współdzieloną",
+          "Jeśli jest założona blokada wyłączna, nie można założyć żadnej innej blokady.",
+          "Blokada UPDATE przekształca się w blokadę współdzieloną.",
+          "Chęć założenia blokady wyłącznej powoduje usunięcie wszystkich założonych wcześniej blokad współdzielonych."
+        ],
+        correct: [0,1,2]
+      },
+	  // DALSZY CIĄG - DODAJ DO TABLICY "questions" (po pytaniu 15):
+
+      {
+        text: "16. Które z poniższych stwierdzeń dotyczących diagramów E/R są PRAWDZIWE:",
+        answers: [
+          "Trójkątem oznacza się podklasy zbioru encji.",
+          "Słabe zbiory encji oznacza się przerywaną linią konturu.",
+          "Pogrubiona linia łącząca zbiór encji z relacją oznacza, że jest to relacja jeden do wielu.",
+          "Słaby zbiór encji oznacza, że nie istnieje on samoistnie bez zdefiniowania innego zbioru encji.",
+          "Podkreślone atrybuty tworzą klucz główny."
+        ],
+        correct: [3,4]
+      },
+      {
+        text: "17. Podaj najniższą postać normalną, w której występują zależności wielowartościowe",
+        answers: [
+          "BCNF",
+          "pierwsza",
+          "czwarta",
+          "druga",
+          "trzecia",
+          "piąta"
+        ],
+        correct: [3]
+      },
+      {
+        text: "18. Które z poniższych stwierdzeń dotyczących diagramów E/R są PRAWDZIWE",
+        answers: [
+          "Relacja może być połączona tylko z dwoma zbiorami encji.",
+          "Dwie strzałki dochodzące do relacji oznaczają, że jest ona typu wiele do wielu.",
+          "Zbiór encji oznacza się prostokątem.",
+          "Atrybuty oznacza się owalem.",
+          "Relacje oznacza się rombem."
+        ],
+        correct: [2,3,4]
+      },
+      {
+        text: "19. Polecenie COMMIT oznacza:",
+        answers: [
+          "Założenie blokad.",
+          "Przywrócenie stanu bazy danych sprzed rozpoczęcia transakcji.",
+          "Brak możliwości wycofania wyników operacji z bazy.",
+          "Zakończenie transakcji."
+        ],
+        correct: [3]
+      },
+      {
+        text: "20. Klucz główny",
+        answers: [
+          "może składać się z wielu atrybutów.",
+          "musi być utworzony dla każdej tabeli.",
+          "nie może mieć wartości NULL.",
+          "jest zawsze częścią klucza obcego.",
+          "baza danych automatycznie zakłada na nim indeks powiązany (clustered index).",
+          "musi mieć unikalne wartości."
+        ],
+        correct: [0,2,4,5]
+      },
+      {
+        text: "21. Które z poniższych stwierdzeń dotyczących DTD i XSD są PRAWDZIWE?",
+        answers: [
+          "W XSD można definiować typy danych.",
+          "Każdy XML musi być zgodny z DTD lub z XSD.",
+          "W DTD można definiować elementy złożone.",
+          "DTD i XSD umożliwiają sprawdzenie poprawności XML'a.",
+          "DTD jest bardziej rozbudowane niż XSD."
+        ],
+        correct: [0,3]
+      },
+      {
+        text: "22. Jeśli w relacji A atrybut jest kluczem obcym wskazującym na relację B. To wskazywany atrybut w relacji B musi być",
+        answers: [
+          "super kluczem",
+          "nie może być kluczem",
+          "kluczem głównym",
+          "kluczem kandydującym",
+          "kluczem obcym"
+        ],
+        correct: [2]
+      },
+      {
+        text: "23. Które z poniższych stwierdzeń dotyczących indeksów są PRAWDZIWE:",
+        answers: [
+          "Tablice bitów wykorzystuje się gdy atrybut ma bardzo dużo różnych wartości.",
+          "Tablice haszujące można zastosować do przeszukania danych o określonej wartości, np. równych 5.",
+          "B+ drzewa można zastosować do przeszukania danych z podanego zakresu, np. od 5 do 15.",
+          "Tablice haszujące można zastosować do przeszukania danych z podanego zakresu, np. od 5 do 15.",
+          "B+ drzewa można zastosować do przeszukania danych o określonej wartości, np. równych 5."
+        ],
+        correct: [1,2,4]
+      },
+      {
+        text: "24. Plan fizyczny optymalizacji zapytania obejmuje",
+        answers: [
+          "Dobór właściwych indeksów.",
+          "Budowa planu algebry relacji.",
+          "Uwzględnienie statystyk danych w tym histogramów.",
+          "Dobór najlepszego algorytmu łączenia (join).",
+          "Określenie kolejności wykonania zapytań w ramach bloku zapytań transakcji"
+        ],
+        correct: [0,2,3]
+      },
+      {
+        text: "25. Które własności algebry relacji są poprawne:",
+        answers: [
+          "σA( R ∩ P ) = σB( σA( R ) )",
+          "σ{A∨B}( R ) = σB( σA( R ) )",
+          "σA σB( R ) = σB σA( R )",
+          "π{a1,…,an}( σA( R ) ) = σA( π_{a1,…,an}( R ) )"
+        ],
+        correct: [2,3]
+      },
+      {
+        text: "26. Zapytanie SQL: SELECT DISTINCT aa, bb FROM X JOIN Y ON aa = cc WHERE aa > 3 zapisane w algebrze relacji będzie miało postać:",
+        answers: [
+          "σ(aa,bb) (ρ(aa>3) (X ⋈\"aa=cc\" Y))",
+          "ρ(aa,bb) (σ(aa>3) (X ⋈\"aa=cc\" Y))",
+          "σ(aa,bb) (Π(aa>3) (X ⋈\"aa=cc\" Y))",
+          "Π(aa,bb) (σ(aa>3) (X ⋈\"aa=cc\" Y))"
+        ],
+        correct: [3]
+      },
+      {
+        text: "27. Które z poniższych stwierdzeń dotyczących ACID są PRAWDZIWE?",
+        answers: [
+          "Spójność oznacza, że nie można wpisać niepoprawnych danych do bazy (łamiących np. więzy integralności lub ograniczeń",
+          "Atomowość oznacza, że albo wszystkie zapytania zakończyły się poprawnie, albo nie wykonały się.",
+          "Trwałość oznacza, że po zakończeniu transakcji (commit) dane są bezpiecznie zapisane w bazie.",
+          "Izolacja oznacza, że baza działa w takim trybie jakby korzystał z niej tylko jeden użytkownik."
+        ],
+        correct: [0,1,2,3]
+      },
+      {
+        text: "28. Które z poniższych stwierdzeń dotyczących komendy GRANT są PRAWDZIWE?",
+        answers: [
+          "Nadaje uprawnienia dotyczące wszystkich rekordów całej tabeli lub wybranych kolumn.",
+          "Po utworzeniu tabeli należy nadać sobie do niej uprawnienia.",
+          "Wykorzystanie widoków umożliwia nadanie uprawnień tylko do wybranej grupy rekordów.",
+          "Można nadawać uprawnienia tylko użytkownikom."
+        ],
+        correct: [0,2]
+      },
+      {
+        text: "29. Które z poniższych stwierdzeń dotyczących Sort-Merge Join (SMJ) są PRAWDZIWE?",
+        answers: [
+          "SMJ potrzebuje do pracy mniej pamięci niż algorytm Hash Join (H)).",
+          "Koszt obliczeniowy SMJ jest równy P(R) + T(R)P(S) + OUT.",
+          "Jeżeli dane wejściowe są posortowane to czas przetwarzania algorytmu jest liniowy.",
+          "Optymalizacja SMJ polega na wykonaniu B-krotnego złączania (merge).",
+          "Złączanie po atrybutach z duplikatami znacząco wydłuża pracę algorytmu."
+        ],
+        correct: [0,2,3,4]
+      },
+      {
+        text: "30. Zapytanie XPath //title/text() w wyniku zwróci:",
+        answers: [
+          "wszystkie wartości zapisane w elemencie \"title\".",
+          "fragment XML'a z zawartością wszystkich elementów \"title\".",
+          "fragment XML'a z zawartością pierwszego napotkanego elementu \"title\".",
+          "pierwszą napotkaną wartość zapisane w elemencie \"title\"."
+        ],
+        correct: [0]
+      },
+      {
+        text: "31. Indeks wtórny (secondary) powinien być utworzony na atrybucie gdy:",
+        answers: [
+          "Zawiera dużo duplikatów.",
+          "Często pojawia się w zapytaniach.",
+          "Jest kluczem głównym.",
+          "Ma ustawione UNIQUE."
+        ],
+        correct: [0,1,3]
+      },
+      {
+        text: "32. Tworząc diagram E/R dla księgarni\nksiążka będzie zbiorem encji\ntytuł książki będzie atrybutem\nWydana przez będzie relacją",
+        answers: [
+          // To było podsumowanie, więc pomiń jako pytanie quizowe lub dodaj jako informacyjne — nie wybierane odpowiedzi
+        ],
+        correct: []
+      },
+      {
+        text: "33. Które z poniższych stwierdzeń dotyczących przechowywania danych są PRAWDZIE:",
+        answers: [
+          "Zastosowanie indeksu powiązanego (clustered index) skutkuje sekwencyjnym ułożeniem danych na dysku.",
+          "RAID jest wykorzystywany aby zmniejszyć ryzyko utraty danych z powodu awarii dysku.",
+          "Rozmiar bloku dyskowego nie ma wpływu na wydajność bazy danych.",
+          "RAID pozwala na przyśpieszenie operacji we/wy.",
+          "Dane z dziennika (log) przechowywane są tylko w pamięci operacyjnej."
+        ],
+        correct: [0,1,3]
+      },
+      {
+        text: "34. Dopasuj symbol do nazwy operacji w algebrze relacji\npierwsze - selekcja\n drugie - zmiana nazwy (alias)\n trzecie - projekcja\n czwarte - iloczyn kartezjański\n piąte - złączenie (join)",
+        answers: [
+          // informacyjne — nie wybierane odpowiedzi
+        ],
+        correct: []
+      },
+      {
+        text: "35. W trybie Mandatory Access Control:",
+        answers: [
+          "Mając dostęp do materiałów ściśle tajnych mogę zapisywać do dokumentu z klauzulą poufne.",
+          "Mając dostęp do materiałów tajnych mogę odczytać dokument z klauzulą poufne.",
+          "Mając dostęp do materiałów tajnych mogę odczytać dokument z klauzulą ściśle tajne.",
+          "Mając dostęp do materiałów poufnych mogę odczytać dokument z klauzulą poufne.",
+          "Mając dostęp do materiałów poufnych mogę zapisywać do dokumentu z poufne."
+        ],
+        correct: [1,3]
+      },
+      {
+        text: "36. Które z poniższych stwierdzeń dotyczących histogramów są PRAWDZIWE?",
+        answers: [
+          "Są wykorzystywane do oszacowania czasu wykonania zapytania.",
+          "Zawierają pełną listę wartości atrybutów występujących w tabeli.",
+          "Można je parametryzować poprzez wybór liczby koszyków i ich typ.",
+          "Muszą dotyczyć tylko jednego atrybutu (są jednowymiarowe)",
+          "Histogramy mogą być aktualizowane."
+        ],
+        correct: [0,2,4]
+      },
+      {
+        text: "37. _________jest atomową sekwencją działań w bazie danych.",
+        answers: [
+          "Współbieżność",
+          "Relacja",
+          "Transakcja"
+        ],
+        correct: [2]
+      },
+      {
+        text: "38. Indeksy w bazie danych mogą wykorzystywać następujące struktury danych",
+        answers: [
+          "B+ drzewa",
+          "Listy jednokierunkowe",
+          "Drzewa binarne",
+          "Tablice bitów",
+          "Tablice haszujące"
+        ],
+        correct: [0,3,4]
+      },
+      {
+        text: "39. Które z poniższych stwierdzeń dotyczących normalizacji są PRAWDZIWE?",
+        answers: [
+          "Celem normalizacji jest wyeliminowanie anomalii.",
+          "Normalizacja powoduje wzrost liczby tabel.",
+          "Dzięki normalizacji w zapytaniach rzadziej pojawia się konieczność łączenia tabel.",
+          "BCNF jest bardziej rygorystyczne niż 3 postać normalna.",
+          "Przed normalizacją trzeba wykonać denormalizację."
+        ],
+        correct: [0,1,3]
+      },
+      {
+        text: "40. Przyspieszenie algorytmu External Merge Sort można uzyskać dzięki:",
+        answers: [
+          "Zwiększeniu liczby buforów",
+          "Zwiększeniu rozmiaru początkowych przebiegów",
+          "Wykorzystaniu B+1 buforów do redukcji liczby przebiegów"
+        ],
+        correct: [0,1,2]
+      },
+      {
+        text: "41. Zaznacz dekompozycję tabel zachowujące zależności dla relacji R(A, B, C, D, E):",
+        answers: [
+          "R1(A, B), R2(D, E)",
+          "R1(A, B, C), R2(D, E)",
+          "R1(A, B, C, D), R2(C, D, E)",
+          "R1(A, B, C), R2(C, D, E)"
+        ],
+        correct: [2,3]
+      },
+      {
+        text: "42. Które stwierdzenia dotyczące Hash Join są prawdziwe?",
+        answers: [
+          "Najpierw wykonywana jest faza złączania (matching) a następnie faza podziału (partitioninig).",
+          "Liczba koszyków (buckets) nie ma wpływu na szybkość algorytmu.",
+          "Koszt obliczeniowy wynosi -3(P(R)+P(S)) + OUT.",
+          "Można go łatwo zrównoleglić.",
+          "Działa efektywnie jeśli rozmiary tabel mocno się różnią."
+        ],
+        correct: [2,3,4]
+      },
+      {
+        text: "43. Relacyjnymi bazami danych są:",
+        answers: [
+          "Cassandra",
+          "Oracle",
+          "MS Access",
+          "SQLite",
+          "MySQL",
+          "MS SQL Server",
+          "HBase",
+          "MongoDB"
+        ],
+        correct: [1,2,3,4,5]
+      },
+      {
+        text: "44. Wykorzystując reguły Armstronga określ, które domknięcia relacji R(A,B,C,D) mając dane zależności A→B; B→C; B→C,D są prawdziwe:",
+        answers: [
+          "(D)+ = {C,D}",
+          "(A)+ = {A,B,C,D}",
+          "(B)+ = {B,C,D}",
+          "(C)+ = {C,D}"
+        ],
+        correct: [1,2]
+      },
+      {
+        text: "45. Kolejność operacji przy optymalizacji zapytań SQL:\n1. Odpalenie zapytania\n2. Wyznaczenie planu fizycznego\n3. Przekształcenie na plan algebry relacyjnej\n4. Optymalizacja planu algebry relacyjnej\nPoprawna kolejność: 1 → 3 → 4 → 2",
+        answers: [
+          // informacyjne
+        ],
+        correct: []
+      },
+      {
+  text: "46. Relacyjna baza danych jest kolekcją:",
+  answers: [
+    "Tabel",
+    "Obiektów",
+    "Indeksów",
+    "Rekordów"
+  ],
+  correct: [0]
+},
+{
+  text: "47. Zadaniami systemu zarządzania bazą danych są:",
+  answers: [
+    "Zarządzanie plikami",
+    "Wyświetlanie wyników zapytań",
+    "Zarządzanie dostępem (autoryzacja)",
+    "Optymalizacja zapytań",
+    "Zarządzanie blokadami",
+    "Zarządzanie transakcjami"
+  ],
+  correct: [2,3,4,5]
+},
+{
+  text: "48. Elementami modelu logicznego bazy danych są:",
+  answers: [
+    "Pola kluczowe",
+    "Typy danych atrybutów",
+    "Atrybuty",
+    "Nazwa tabeli"
+  ],
+  correct: [0,1,2,3]
+},
+{
+  text: "49. Zbiór obiektów tego samego typu w diagramach E/R nazywa się:",
+  answers: [
+    "Atrybut",
+    "Zbiór atrybutów",
+    "Encja",
+    "Zbiór encji",
+    "Zbiór relacji",
+    "Relacja"
+  ],
+  correct: [3]
+},
+{
+  text: "50. Parametr opisujący obiekt w diagramie E/R nazywa się:",
+  answers: [
+    "Relacja",
+    "Atrybut",
+    "Zbiór atrybutów",
+    "Encja",
+    "Zbiór encji",
+    "Zbiór relacji"
+  ],
+  correct: [1]
+},
+{
+  text: "51. Z których typów obiektów diagramu E/R tworzy się tabele bazy danych?",
+  answers: [
+    "Relacja",
+    "Encja",
+    "Zbiór atrybutów",
+    "Atrybut",
+    "Zbiór encji"
+  ],
+  correct: [0,1,4]
+},
+{
+  text: "52. Które stwierdzenia są PRAWDZIWE w kontekście SQL?",
+  answers: [
+    "Duże i małe litery nie mają znaczenia dla ciągów znaków",
+    "Jest językiem deklaratywnym",
+    "Wartość w komórce tabeli musi być typu atomowego",
+    "Duże i małe litery nie mają znaczenia dla komend",
+    "Wykonuje operacje na multizbiorach",
+    "Do oznaczenia ciągu znaków używa się podwójny cudzysłów"
+  ],
+  correct: [1,3,4]
+},
+{
+  text: "53. Jaki będzie wynik operacji p OR q w SQL jeśli p = TRUE, q = NULL?",
+  answers: [
+    "FALSE",
+    "NULL",
+    "TRUE"
+  ],
+  correct: [2]
+},
+{
+  text: "54. Jaki będzie wynik operacji p AND q w SQL jeśli p = TRUE, q = NULL?",
+  answers: [
+    "NULL",
+    "FALSE",
+    "TRUE"
+  ],
+  correct: [0]
+},
+{
+  text: "55. Jaki będzie wynik operacji p AND q w SQL jeśli p = FALSE, q = NULL?",
+  answers: [
+    "TRUE",
+    "FALSE",
+    "NULL"
+  ],
+  correct: [1]
+},
+{
+  text: "56. Jaki będzie wynik operacji p OR q w SQL jeśli p = FALSE, q = NULL?",
+  answers: [
+    "NULL",
+    "FALSE",
+    "TRUE"
+  ],
+  correct: [0]
+},
+{
+  text: "57. Najniższa postać normalna, w której atrybuty złożone rozbija się na atrybuty atomowe:",
+  answers: [
+    "Trzecia",
+    "BCNF",
+    "Czwarta",
+    "Pierwsza",
+    "Druga",
+    "Piąta"
+  ],
+  correct: [3]
+},
+{
+  text: "58. Najniższa postać normalna, w której nie ma przechodnich zależności funkcyjnych:",
+  answers: [
+    "BCNF",
+    "Druga",
+    "Piąta",
+    "Pierwsza",
+    "Trzecia",
+    "Czwarta"
+  ],
+  correct: [4]
+},
+{
+  text: "59. Najniższa postać normalna, w której każda nietrywialna zależność funkcyjna jest superkluczem:",
+  answers: [
+    "Pierwsza",
+    "Druga",
+    "Czwarta",
+    "Piąta",
+    "BCNF",
+    "Trzecia"
+  ],
+  correct: [4]
+},
+{
+  text: "60. Typy anomalii w bazach danych:",
+  answers: [
+    "Redundancja danych",
+    "Anomalia usuwania",
+    "Anomalia zależności funkcyjnej",
+    "Anomalia dekompozycji",
+    "Anomalia wstawiania",
+    "Anomalia modyfikacji"
+  ],
+  correct: [0,1,4,5]
+},
+{
+  text: "61. Które stwierdzenia dotyczące operacji wejścia/wyjścia są PRAWDZIWE?",
+  answers: [
+    "1GB pamięci RAM jest droższy niż 1GB dysku SSD",
+    "W przypadku awarii zasilania dane na dysku nie są kasowane",
+    "Sekwencyjny odczyt danych z dysku HDD jest znacznie szybszy niż losowy",
+    "Dane z pamięci RAM po utracie zasilania są przechowywane w buforze",
+    "W serwerowniach używa się przeważnie dysków HDD"
+  ],
+  correct: [0,1,2,4]
+},
+{
+  text: "62. Które stwierdzenia dotyczące RAID są PRAWDZIWE?",
+  answers: [
+    "RAID 0 ma dwa razy szybszy odczyt i zapis niż pojedynczy dysk",
+    "Odtwarzanie danych po awarii jednego dysku w RAID 5 zajmuje dużo czasu",
+    "RAID 1 nie jest odporny na awarie dysku",
+    "RAID 6 potrzebuje więcej dysków niż RAID 5 do przechowania tej samej ilości danych",
+    "W RAID 5 mogą ulec awarii jednocześnie dwa dyski bez ryzyka utraty danych"
+  ],
+  correct: [0,1,3]
+},
+{
+  text: "63. Które stwierdzenia dotyczące transakcji są PRAWDZIWE?",
+  answers: [
+    "Zapewniają wielodostęp do baz danych",
+    "Pozwalają przetrwać bazie danych awarię bez ryzyka niespójności danych",
+    "Przyśpieszają działanie bazy danych",
+    "Gwarantują, że nieuprawnieni użytkownicy nie mają dostępu do danych",
+    "Mogą składać się tylko z jednego zapytania"
+  ],
+  correct: [0,1,4]
+},
+{
+  text: "64. Awaria w trakcie transakcji spowoduje:",
+  answers: [
+    "Wynik transakcji zostanie zapisany na dysku jeśli wykonany był commit",
+    "Wynik transakcji zostanie zapisany na dysku bez względu na jej stan jeśli operacje były zapisywane w logu",
+    "Log musi być zapisany na dysk przed przesłaniem danych na dysk"
+  ],
+  correct: [0,2]
+},
+{
+  text: "65. Harmonogram szeregowalny (serializable) oznacza, że:",
+  answers: [
+    "Nie można wykonać żadnej transakcji, występuje zakleszczenie",
+    "Można wykonać równolegle wiele transakcji",
+    "Każda transakcja musi być wykonana szeregowo, jedna po drugiej"
+  ],
+  correct: [1]
+},
+{
+  text: "66. Które stwierdzenia dotyczące konfliktów są PRAWDZIWE?",
+  answers: [
+    "Konflikt RW powoduje, że kolejny odczyt danych jest niespójny",
+    "Baza danych zawsze musi być tak ustawiona, aby konflikty nie były możliwe",
+    "Konflikt RW powoduje, że nie można utworzyć harmonogramu serializowanego",
+    "Konflikt WR spowoduje, że w przypadku wycofania transakcji odczyt danych będzie niespójny"
+  ],
+  correct: [0,2,3]
+},
+{
+  text: "67. Które stwierdzenia dotyczące poziomów izolacji są PRAWDZIWE?",
+  answers: [
+    "Tryb read committed oznacza, że brudny odczyt nie jest możliwy",
+    "Tryb read uncommitted jest najbardziej bezpiecznym poziomem izolacji",
+    "Tryb repeatable read oznacza, że mogą wystąpić fantomy",
+    "Tryb serializable oznacza, że żadne konflikty nie są akceptowane"
+  ],
+  correct: [0,2,3]
+},
+{
+  text: "68. Jeśli skierowany graf konfliktów transakcji jest acykliczny, to:",
+  answers: [
+    "Można utworzyć harmonogram serializowalny",
+    "Nie występują konflikty",
+    "Musimy dodać transakcje do grafu"
+  ],
+  correct: [0]
+},
+{
+  text: "69. Zakładanie blokad wg algorytmu blokowania dwufazowego (2PL) oznacza, że:",
+  answers: [
+    "Graf zależności transakcji musi mieć przynajmniej jeden cykl",
+    "Utworzony harmonogram będzie serializowalny",
+    "Muszą być założone wszystkie blokady przed zdjęciem pierwszej z blokad"
+  ],
+  correct: [1,2]
+},
+{
+  text: "70. Mechanizmami zapewniającymi kontrolę dostępu są:",
+  answers: [
+    "Discretionary Access Control (DAC)",
+    "Database Administrator Access Control",
+    "Server Access Control",
+    "Role-Based Access Control (RBAC)",
+    "Mandatory Access Control (MAC)"
+  ],
+  correct: [0,3,4]
+},
+{
+  text: "71. WITH GRANT OPTION oznacza, że:",
+  answers: [
+    "Użytkownik może nie korzystać ze swoich uprawnień",
+    "Nadajemy użytkownikowi takie same uprawnienia jakie sami posiadamy",
+    "Dajemy użytkownikowi prawo przekazywania dalej uprawnień",
+    "Zabieramy użytkownikowi uprawnienia do zasobu"
+  ],
+  correct: [2]
+},
+{
+  text: "72. SQL injection:",
+  answers: [
+    "Jest to jedna z technik uzyskiwania nieuprawnionego dostępu do danych",
+    "Jest to tryb dostępu administratora do bazy",
+    "Jest to jeden z trybów pracy bazy danych"
+  ],
+  correct: [0]
+},
+{
+  text: "73. Elementami XML'a są:",
+  answers: [
+    "Text",
+    "Comment",
+    "Attribute",
+    "Element",
+    "Namespace"
+  ],
+  correct: [0,1,2,3,4]
+},
+{
+  text: "74. XQuery jest:",
+  answers: [
+    "Częścią pliku XML",
+    "Językiem zapytań dla XML",
+    "Strukturą danych w XML"
+  ],
+  correct: [1]
+},
+{
+  text: "75. Które stwierdzenia dotyczące optymalizacji planu algebry relacji są PRAWDZIWE?",
+  answers: [
+    "Selekcja powinna być przesunięta w dół drzewa",
+    "Nie wolno zmienić kolejności operacji łączenia (join)",
+    "Istnieje tylko jedno drzewo przedstawiające plan algebry relacji",
+    "Projekcja powinna być przesunięta w dół drzewa"
+  ],
+  correct: [0,3]
+},
+{
+  text: "76. Operacja projekcji w algebrze relacji oznacza:",
+  answers: [
+    "Połączenie rekordów z dwóch tabel",
+    "Eliminację zbędnych kolumn",
+    "Zwrócenie rekordów, które spełniają podane warunki",
+    "Usunięcie duplikatów"
+  ],
+  correct: [1,3]
+},
+{
+  text: "77. Przepakowanie w algorytmie External Merge Sort:",
+  answers: [
+    "Jeśli dane są posortowane to eliminujemy etap Merge",
+    "Można zawsze zastosować, bez względu na ułożenie danych na dysku",
+    "Zawsze przyspiesza działanie algorytmu"
+  ],
+  correct: [1]
+},
+{
+  text: "78. Które stwierdzenia dotyczące indeksów są PRAWDZIWE?",
+  answers: [
+    "Indeksy spowalniają operacje aktualizacji danych",
+    "Na kolumnie może być założonych wiele indeksów",
+    "Można założyć wiele indeksów powiązanych (clustered) w tabeli",
+    "W bazie danych wszystkie indeksy muszą być przechowywane w pamięci RAM"
+  ],
+  correct: [0]
+},
+{
+  text: "79. Które algorytmy łączenia wymagają ~3(P(R)+P(S)) + OUT operacji?",
+  answers: [
+    "Sort-Merge Join (SMJ)",
+    "Block Nested Loop Join (BNLJ)",
+    "Nested Loop Join (NLJ)",
+    "Hash Join (HJ)",
+    "Index Nested Loop Join (INLJ)"
+  ],
+  correct: [0,3]
+},
+{
+  text: "80. Algorytm Index Nested Loop Join (INLJ):",
+  answers: [
+    "We wzorze P(R) + T(R)*L + OUT, L oznacza liczbę operacji we/wy",
+    "Nie musimy wykonywać iloczynu kartezjańskiego",
+    "Jest wolniejszy niż algorytm Nested Loop Join (NLJ)"
+  ],
+  correct: [0,1]
+},
+{
+  text: "81. Do zaindeksowania 1TB danych potrzebne jest B+ drzewo o ___ poziomach:",
+  answers: [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  correct: [3]
+},
+{
+  text: "82. Kolejność zapisu w komendzie SELECT:",
+  answers: [
+    "SELECT",
+    "FROM",
+    "WHERE",
+    "GROUP BY",
+    "HAVING",
+    "ORDER BY"
+  ],
+  correct: [] // Informacyjne
+},
+{
+  text: "83. Kolejność przetwarzania w zapytaniu SELECT:",
+  answers: [
+    "FROM",
+    "WHERE",
+    "GROUP BY",
+    "HAVING",
+    "SELECT",
+    "ORDER BY"
+  ],
+  correct: [] // Informacyjne
+},
+{
+  text: "84. Wybierz stwierdzenia, które są PRAWDZIWE w kontekście ról (Role-Based Access Control):",
+  answers: [
+    "można przypisać tylko na etapie tworzenia nowego użytkownika",
+    "Uprawnienia można przypisać do roli",
+    "Role można przypisać do wielu użytkowników",
+    "Użytkownik może być przypisany tylko do jednej roli"
+  ],
+  correct: [1,2]
+},
+{
+  text: "85. Wybierz stwierdzenia, które są PRAWDZIWE w kontekście danych półstrukturalnych (semistructural):",
+  answers: [
+    "Dobrze nadają się do przechowywania danych rzadkich",
+    "Struktura danych może ulegać zmianie w czasie",
+    "Struktura danych musi dać się przekształcić do relacyjnego modelu",
+    "Obowiązkowo należy zdefiniować schemat danych przed użyciem"
+  ],
+  correct: [0,1]
+},
+{
+  text: "86. Wybierz stwierdzenia, które są PRAWDZIWE w kontekście DENORMALIZACJI bazy danych:",
+  answers: [
+    "Zmniejszenie liczby łączeń tabel (JOIN)",
+    "Ostatni etap normalizacji",
+    "Musi być wykonana dla każdej relacyjnej bazy",
+    "Zwiększenie wydajności bazy"
+  ],
+  correct: [0,3]
+},
+{
+  text: "87. Wybierz stwierdzenia, które są PRAWDZIWE w kontekście JSON:",
+  answers: [
+    "Nie zawiera tagów zamykających",
+    "Obsługiwany tylko przez JavaScript",
+    "Nie obsługuje tablic",
+    "Łatwiejszy do parsowania od XML"
+  ],
+  correct: [0,3]
+},
+{
+  text: "88. W XPath:",
+  answers: [
+    "można definiować zmienne.",
+    "symbol * oznacza, że możemy zagłębić się w drzewie XML na dowolną liczbę poziomów.",
+    "można zwrócić fragment XML lub zbiór wartości.",
+    "umożliwia pobranie z XML danych.",
+    "występują pętle."
+  ],
+  correct: [1,2,3]
+},
+
+    ];
+
+
+
+function setMode(newMode) {
+  mode = newMode;
+  questionIndex = 0;
+  document.getElementById('seqBtn').classList.toggle('active', mode === "sequential");
+  document.getElementById('randBtn').classList.toggle('active', mode === "random");
+  nextQuestion(true);
+}
+
+document.querySelectorAll('input[name="mode"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    mode = this.value;
+    questionIndex = 0;
+    loadQuestion();
+  });
+});
+
+    let currentQuestion;
+	function nextQuestion(force = false) {
+  if (mode === "sequential" && !force) {
+    questionIndex++;
+    if (questionIndex >= questions.length) questionIndex = 0; // pętla
+  }
+  loadQuestion();
+  // Reset komunikatu i tła
+  const resultDiv = document.getElementById('result');
+  resultDiv.innerHTML = '';
+  resultDiv.style.backgroundColor = '';
+}
+
+
+    function loadQuestion() {
+      let index;
+  if (mode === "random") {
+    index = Math.floor(Math.random() * questions.length);
+  } else {
+    index = questionIndex % questions.length;
+  }
+  currentQuestion = questions[index];
+
+      const questionDiv = document.getElementById('question');
+      const optionsDiv = document.getElementById('options');
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+
+      questionDiv.innerHTML = `<strong>${currentQuestion.text}</strong>`;
+      optionsDiv.innerHTML = '';
+
+      currentQuestion.answers.forEach((ans, i) => {
+        const id = `ans_${i}`;
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" id="${id}"> ${ans}`;
+        optionsDiv.appendChild(label);
+      });
+    }
+
+function checkAnswer() {
+  const optionsDiv = document.getElementById('options');
+  const labels = optionsDiv.getElementsByTagName('label');
+
+  currentQuestion.answers.forEach((_, i) => {
+    const label = labels[i];
+    label.classList.remove('correct', 'wrong');
+    if (currentQuestion.correct.includes(i)) {
+      label.classList.add('correct');
+    } else {
+      label.classList.add('wrong');
+    }
+  });
+
+  // sprawdzamy, czy użytkownik wybrał dokładnie wszystkie poprawne
+  let allCorrect = true;
+  currentQuestion.answers.forEach((_, i) => {
+    const checkbox = document.getElementById(`ans_${i}`);
+    const isChecked = checkbox.checked;
+    const isCorrect = currentQuestion.correct.includes(i);
+    if (isChecked !== isCorrect) allCorrect = false;
+  });
+
+  const resultDiv = document.getElementById('result');
+  if (allCorrect) {
+    resultDiv.style.backgroundColor = '#4CAF50';
+    resultDiv.innerText = '✅ Poprawna odpowiedź!';
+  } else {
+    resultDiv.style.backgroundColor = '#e74c3c';
+    resultDiv.innerText = '❌ Błąd w odpowiedzi.';
+  }
+}
+
+
+
+    window.onload = loadQuestion;
+  </script>
+</body>
+</html>
